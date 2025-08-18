@@ -1,0 +1,13 @@
+# pixtract/config.py
+
+VIDEO_EXTENSIONS = ('.mp4', '.mov', '.avi', '.mkv')
+DEFAULT_SINGLE_VIDEO_OUTPUT_SUFFIX = "_frames"
+DEFAULT_DIRECTORY_OUTPUT_FOLDER = "Processed_Frames"
+
+DEFAULT_INTERVAL = 1
+DEFAULT_SHARPNESS_THRESHOLD = 100
+DEFAULT_DUPLICATE_THRESHOLD = 1.0
+DEFAULT_ROTATION_ANGLE = 0
+
+LOG_FORMAT_VERBOSE = '%(asctime)s - %(levelname)s - %(message)s'
+LOG_FORMAT_SIMPLE = '%(message)s'
