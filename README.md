@@ -14,10 +14,19 @@ Pixtract is a powerful and efficient command-line tool designed to extract high-
 
 ## Installation
 
-You can install Pixtract directly from PyPI using pip:
+You can install Pixtract directly from GitHub using `Git`:
+```bash
+pip install git+https://github.com/rahaaatul/Pixtract.git
+```
+or from PyPI using `pip`:
 
 ```bash
 pip install pixtract
+```
+Or with `pipx` for isolated installation:
+
+```bash
+pipx install pixtract
 ```
 
 ## Usage
@@ -65,7 +74,7 @@ pixtract holiday_clip.mp4 --dry-run
 | `--input-path`      |       | `str`   | Current Dir    | Path to a video file or a directory containing videos.                   |
 | `--output`          | `-o`  | `str`   | `Processed_Frames` | Path to the output directory.                                            |
 | `--sharpness`       | `-s`  | `int`   | `100`          | Set the sharpness threshold for blur detection. Lower values are more permissive. |
-| `--duplicate`       | `-d`  | `float` | `0.95`         | Set the threshold for duplicate detection. Higher values are more strict. |
+| `--duplicate`       | `-d`  | `float` | `1`         | Set the threshold for duplicate detection. Higher values are more strict. |
 | `--rotate`          | `-r`  | `int`   | `0`            | Rotate frames by 0, 90, 180, or 270 degrees.                             |
 | `--dry-run`         |       | `flag`  | `False`        | Simulate the process without creating or deleting files.                 |
 | `--limit`           | `-l`  | `int`   | `None`         | Limit the number of videos to process.                                   |

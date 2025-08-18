@@ -16,7 +16,12 @@ init(autoreset=True)
 def main() -> None:
     """Main function to process all specified videos."""
     try:
-        args: argparse.Namespace = parse_args()
+        args, parser = parse_args()
+
+        # If no arguments were provided, print help and exit
+        if len(sys.argv) == 1:
+            parser.print_help()
+            sys.exit(0)
 
         # Configure logging
         log_level: int = logging.DEBUG if args.verbose else logging.INFO
@@ -116,8 +121,7 @@ def main() -> None:
             logging.debug(f"  {Fore.MAGENTA}Duplicate Frames Removed: {summary['duplicate_frames_removed']}")
             logging.debug(f"  {Fore.GREEN}Final Frames Count: {summary['final_frames_count']}")
 
-        logging.info(f"\n{Fore.GREEN}--- Overall Summary ---
-")
+        logging.info(f"\n{Fore.GREEN}--- Overall Summary ---")
         logging.info(f"{Fore.BLUE}Total Extracted Frames: {total_frames_extracted}")
         logging.info(f"{Fore.RED}Total Blurry Frames Removed: {total_blurry_frames_removed}")
         logging.info(f"{Fore.MAGENTA}Total Duplicate Frames Removed: {total_duplicate_frames_removed}")

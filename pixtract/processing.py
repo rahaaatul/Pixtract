@@ -1,3 +1,4 @@
+"""Core functions for video frame extraction, sharpness analysis, and duplicate detection."""
 import os
 import cv2
 import logging
@@ -5,14 +6,14 @@ from typing import Dict, Any, Optional
 from tqdm import tqdm
 from .utils import calculate_sharpness, are_images_duplicates
 
-def extract_frames(video_path: str, output_folder: str, frame_interval: int = 5, rotation_angle: int = 0, dry_run: bool = False) -> int:
+def extract_frames(video_path: str, output_folder: str, frame_interval: int = 1, rotation_angle: int = 0, dry_run: bool = False) -> int:
     """
     Extracts frames from a video file and saves them as images.
 
     Args:
         video_path (str): The path to the video file.
         output_folder (str): The path to the output directory.
-        frame_interval (int, optional): The interval at which to extract frames. Defaults to 5.
+        frame_interval (int, optional): The interval at which to extract frames. Defaults to 1 (every frame).
         rotation_angle (int, optional): The angle to rotate the frames. Defaults to 0.
         dry_run (bool, optional): If True, simulates the process without saving files. Defaults to False.
 
@@ -77,7 +78,7 @@ def extract_frames(video_path: str, output_folder: str, frame_interval: int = 5,
     logging.debug(f"Extracted {saved_frame_count} frames from {video_path}")
     return saved_frame_count
 
-def process_video_frames(video_path: str, output_folder: str, sharpness_threshold: int = 100, duplicate_threshold: float = 0.95, rotation_angle: int = 0, dry_run: bool = False, frame_interval: int = 5) -> Dict[str, Any]:
+def process_video_frames(video_path: str, output_folder: str, sharpness_threshold: int = 100, duplicate_threshold: float = 1.0, rotation_angle: int = 0, dry_run: bool = False, frame_interval: int = 1) -> Dict[str, Any]:
     """
     Extracts, cleans, and processes frames from a single video.
 
@@ -85,10 +86,10 @@ def process_video_frames(video_path: str, output_folder: str, sharpness_threshol
         video_path (str): The path to the video file.
         output_folder (str): The directory for the output frames.
         sharpness_threshold (int, optional): The sharpness threshold for blur detection. Defaults to 100.
-        duplicate_threshold (float, optional): The threshold for duplicate detection. Defaults to 0.95.
+        duplicate_threshold (float, optional): The threshold for duplicate detection. Higher values (closer to 1.0) are more strict, meaning frames must be nearly identical to be considered duplicates. Defaults to 1.0.
         rotation_angle (int, optional): The angle to rotate the frames. Defaults to 0.
         dry_run (bool, optional): If True, simulates the process without saving files. Defaults to False.
-        frame_interval (int, optional): The interval at which to extract frames. Defaults to 5.
+        frame_interval (int, optional): The interval at which to extract frames. Defaults to 1 (every frame).
 
     Returns:
         dict: A summary of the processing results.

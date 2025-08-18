@@ -27,14 +27,14 @@ def calculate_sharpness(image_path: str) -> float:
         logging.error(f"Unexpected error calculating sharpness for {image_path}: {e}", exc_info=True)
         return 0.0
 
-def are_images_duplicates(image_path1: str, image_path2: str, duplicate_threshold: float = 0.95) -> bool:
+def are_images_duplicates(image_path1: str, image_path2: str, duplicate_threshold: float = 1.0) -> bool:
     """
     Compares two images for similarity to determine if they are duplicates.
 
     Args:
         image_path1 (str): The path to the first image file.
         image_path2 (str): The path to the second image file.
-        duplicate_threshold (float, optional): The threshold for similarity. Defaults to 0.95.
+        duplicate_threshold (float, optional): The threshold for similarity. Higher values (closer to 1.0) mean images must be nearly identical to be considered duplicates. Defaults to 1.0.
 
     Returns:
         bool: True if the images are considered duplicates, False otherwise.

@@ -53,7 +53,7 @@ def test_process_video_frames_with_robust_video(robust_dummy_video, tmp_path):
     # All three extracted frames are identical (Frame A), so 2 should be removed.
     assert summary["duplicate_frames_removed"] == 2
     assert summary["blurry_frames_removed"] == 0
-    assert summary["final_frame_count"] == 1
+    assert summary["final_frames_count"] == 1
 
     # 2. Check the actual file output
     assert os.path.isdir(video_output_dir)
