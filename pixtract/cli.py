@@ -7,7 +7,7 @@ import sys
 class CustomArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         self.print_help(sys.stderr)
-        sys.stderr.write(f'\nerror: {message}\n')
+        self.stderr.write(f'\nerror: {message}\n')
         sys.exit(2)
 
 def positive_int(value: str) -> int:
@@ -102,6 +102,12 @@ Lower values (closer to 0.0) are more permissive (allow more differences). Defau
         type=int,
         default=None,
         help="Limit the number of videos to process when an input directory is provided."
+    )
+    general_group.add_argument(
+        "-w", "--workers",
+        type=positive_int,
+        default=os.cpu_count(),
+        help=f"Number of parallel processes to use for video processing. Default is {os.cpu_count()} (number of CPU cores)."
     )
 
     return parser.parse_args(), parser

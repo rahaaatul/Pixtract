@@ -71,29 +71,58 @@ def _get_video_files(input_path: str, limit: Optional[int]) -> List[str]:
         video_files = video_files[:limit]
     return video_files
 
-def _process_videos(video_files: List[str], input_path: str, output_directory: str, processing_params: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Processes a list of video files and returns their processing summaries."""
-    processing_summaries: List[Dict[str, Any]] = []
-    with tqdm(total=len(video_files), desc="Processing Videos", unit="video", bar_format="{l_bar}{bar:20}{r_bar}") as pbar:
-        for video_file in video_files:
-            # If input was a directory, each video gets its own subfolder in the output dir.
-            # If input was a single file, frames are saved directly in the output dir.
-            if os.path.isdir(input_path):
-                video_specific_output_folder = os.path.join(output_directory, os.path.splitext(os.path.basename(video_file))[0])
-            else:
-                video_specific_output_folder = output_directory
+import concurrent.futures
 
-            summary = process_video_frames(
-                video_file,
-                video_specific_output_folder,
-                sharpness_threshold=processing_params["sharpness_threshold"],
-                duplicate_threshold=processing_params["duplicate_threshold"],
-                rotation_angle=processing_params["rotation_angle"],
-                dry_run=processing_params["dry_run"],
-                frame_interval=processing_params["frame_interval"]
-            )
-            processing_summaries.append(summary)
-            pbar.update(1)
+def _process_single_video(video_file: str, input_path: str, output_directory: str, processing_params: Dict[str, Any]) -> Dict[str, Any]:
+    """Helper function to process a single video, used by the multiprocessing pool."""
+    if os.path.isdir(input_path):
+        video_specific_output_folder = os.path.join(output_directory, os.path.splitext(os.path.basename(video_file))[0])
+    else:
+        video_specific_output_folder = output_directory
+
+    return process_video_frames(
+        video_file,
+        video_specific_output_folder,
+        sharpness_threshold=processing_params["sharpness_threshold"],
+        duplicate_threshold=processing_params["duplicate_threshold"],
+        rotation_angle=processing_params["rotation_angle"],
+        dry_run=processing_params["dry_run"],
+        frame_interval=processing_params["frame_interval"]
+    )
+
+def _process_videos(video_files: List[str], input_path: str, output_directory: str, processing_params: Dict[str, Any], num_workers: int) -> List[Dict[str, Any]]:
+    """Processes a list of video files in parallel and returns their processing summaries."""
+    processing_summaries: List[Dict[str, Any]] = []
+    
+    # Use ProcessPoolExecutor for parallel processing
+    with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers) as executor:
+        # Submit tasks to the executor
+        future_to_video = {
+            executor.submit(_process_single_video, video_file, input_path, output_directory, processing_params): video_file
+            for video_file in video_files
+        }
+
+        # Use tqdm to show progress as futures complete
+        with tqdm(total=len(video_files), desc="Processing Videos", unit="video", bar_format="{l_bar}{bar:20}{r_bar}") as pbar:
+            for future in concurrent.futures.as_completed(future_to_video):
+                video_file = future_to_video[future]
+                try:
+                    summary = future.result()
+                    processing_summaries.append(summary)
+                except Exception as exc:
+                    logging.error(f'{video_file} generated an exception: {exc}', exc_info=True)
+                    # Append a summary indicating failure for this video
+                    processing_summaries.append({
+                        "video": video_file,
+                        "output_folder": "N/A",
+                        "extracted_frames": 0,
+                        "blurry_frames_removed": 0,
+                        "duplicate_frames_removed": 0,
+                        "final_frames_count": 0,
+                        "status": "failed",
+                        "error": str(exc)
+                    })
+                pbar.update(1)
     return processing_summaries
 
 def _log_summaries(processing_summaries: List[Dict[str, Any]]) -> None:
@@ -102,8 +131,14 @@ def _log_summaries(processing_summaries: List[Dict[str, Any]]) -> None:
     total_blurry_frames_removed: int = 0
     total_duplicate_frames_removed: int = 0
     total_final_frames_count: int = 0
+    total_failed_videos: int = 0
 
     for summary in processing_summaries:
+        if summary.get("status") == "failed":
+            total_failed_videos += 1
+            logging.error(f"\n{Fore.RED}Video: {summary['video']} - FAILED ({summary.get('error', 'Unknown error')})")
+            continue
+
         total_frames_extracted += summary["extracted_frames"]
         total_blurry_frames_removed += summary["blurry_frames_removed"]
         total_duplicate_frames_removed += summary["duplicate_frames_removed"]
@@ -121,6 +156,8 @@ def _log_summaries(processing_summaries: List[Dict[str, Any]]) -> None:
     logging.info(f"{Fore.RED}Total Blurry Frames Removed: {total_blurry_frames_removed}")
     logging.info(f"{Fore.MAGENTA}Total Duplicate Frames Removed: {total_duplicate_frames_removed}")
     logging.info(f"{Fore.GREEN}Total Final Frames Count: {total_final_frames_count}")
+    if total_failed_videos > 0:
+        logging.info(f"{Fore.RED}Total Videos Failed: {total_failed_videos}")
 
 def main() -> None:
     """Main function to process all specified videos."""
@@ -142,6 +179,7 @@ def main() -> None:
         dry_run: bool = args.dry_run
         limit: Optional[int] = args.limit
         frame_interval: int = args.interval
+        num_workers: int = args.workers # New argument
 
         _validate_input_path(input_path)
 
@@ -157,7 +195,7 @@ def main() -> None:
             "dry_run": dry_run,
             "frame_interval": frame_interval
         }
-        processing_summaries = _process_videos(video_files, input_path, output_directory, processing_params)
+        processing_summaries = _process_videos(video_files, input_path, output_directory, processing_params, num_workers) # Pass num_workers
         _log_summaries(processing_summaries)
 
     except KeyboardInterrupt:
