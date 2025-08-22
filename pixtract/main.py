@@ -60,6 +60,8 @@ def _prepare_output_directory(output_directory: str, dry_run: bool) -> None:
             logging.error(f"Error creating output directory '{output_directory}': {e}", exc_info=True)
             sys.exit(1)
 
+import concurrent.futures
+
 def _get_video_files(input_path: str, limit: Optional[int]) -> List[str]:
     """Discovers video files based on the input path and applies the limit."""
     if os.path.isfile(input_path):
@@ -70,8 +72,6 @@ def _get_video_files(input_path: str, limit: Optional[int]) -> List[str]:
     if limit:
         video_files = video_files[:limit]
     return video_files
-
-import concurrent.futures
 
 def _process_single_video(video_file: str, input_path: str, output_directory: str, processing_params: Dict[str, Any]) -> Dict[str, Any]:
     """Helper function to process a single video, used by the multiprocessing pool."""
