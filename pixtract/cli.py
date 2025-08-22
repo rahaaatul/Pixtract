@@ -3,6 +3,7 @@
 import argparse
 import os
 import sys
+from . import config
 
 class CustomArgumentParser(argparse.ArgumentParser):
     def error(self, message):
@@ -14,10 +15,8 @@ def positive_int(value: str) -> int:
     """Type function for argparse to ensure a positive integer."""
     ivalue = int(value)
     if ivalue < 1:
-        raise argparse.ArgumentTypeError(f"{{value}} is an invalid positive int value. Must be >= 1.")
+        raise argparse.ArgumentTypeError("{value} is an invalid positive int value. Must be >= 1.")
     return ivalue
-
-from . import config
 
 def parse_args() -> tuple[argparse.Namespace, argparse.ArgumentParser]:
     """
