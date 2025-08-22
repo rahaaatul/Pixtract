@@ -2,7 +2,7 @@
 import os
 import cv2
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from tqdm import tqdm
 from .utils import calculate_sharpness, are_images_duplicates
 
